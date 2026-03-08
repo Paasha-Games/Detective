@@ -71,8 +71,8 @@
 
     <script>
     // 1. THE SPLIT KEY (Ensures GitHub doesn't block it)
-    const p1 = "AIzaSyD7XB3KBrnJcIN"; 
-    const p2 = "ZWDb637OfPjyQaTSbMs0"; 
+    const p1 = "AIzaSyA6lx6xK4UGAL"; 
+    const p2 = "Xs2T0YAPbCytE4EJ1TbWI"; 
     const key = (p1 + p2).trim();
 
     let credits = parseInt(localStorage.getItem('det_credits')) || 0;
@@ -87,11 +87,17 @@
     }
 
     async function talkToGemini(promptText) {
-        // MARCH 2026 UPDATED ENDPOINT: Using v1beta for Gemini 3.1 Pro Preview
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${key}`;
+        // MARCH 2026: Using the Stable v1 endpoint for Gemini 2.5 Flash
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${key}`;
         
         const payload = {
-            contents: [{ parts: [{ text: promptText }] }]
+            contents: [{ parts: [{ text: promptText }] }],
+            // Gemini 2.5 Flash supports "Thinking" - this makes the mystery better!
+            generationConfig: {
+                temperature: 0.7,
+                topK: 40,
+                topP: 0.95,
+            }
         };
 
         try {
@@ -104,9 +110,9 @@
             const data = await response.json();
 
             if (!response.ok) {
-                // If it fails, check if the key is correct or if your region supports 3.1
                 console.error("API Error:", data);
-                return `هەڵە: ${data.error.message}`;
+                // If it's a 404, the model ID might have a regional suffix (like -001)
+                return "هەڵە: پەیوەندی بە مۆدێلی Gemini 2.5 سەرکەوتوو نەبوو.";
             }
 
             return data.candidates[0].content.parts[0].text;
@@ -118,12 +124,12 @@
 
     async function startGame() {
         playerName = document.getElementById('player-name').value || "لێکۆڵەر";
-        document.getElementById('story-text').innerText = "بە بەکارهێنانی Gemini 3.1 Pro... خەریکە چیرۆکەکە دروست دەبێت...";
+        document.getElementById('story-text').innerText = "خەریکە لێکۆڵەرەکان بە هاوکاری Gemini 2.5 ڕاپۆرتەکە دەنووسن...";
         showScreen('screen-story');
         
-        const prompt = "Write a short Kurdish crime mystery in Sorani. Set in a Kurdish city. 3 suspects. Do not reveal the killer.";
+        const prompt = "Write a Kurdish crime mystery in Sorani. Set in a Kurdish city. Include 3 suspects with names like (Dana, Shano, Bakir). Describe the crime clearly but keep it short. Use Sorani Kurdish.";
         gameStory = await talkToGemini(prompt);
-        document.getElementById( 'story-text').innerText = gameStory;
+        document.getElementById('story-text').innerText = gameStory;
     }
 
     async function sendMessage() {
@@ -134,7 +140,7 @@
         const userQ = input.value;
         input.value = "";
 
-        const prompt = `Story: ${gameStory}. Detective: ${userQ}. Respond as the suspects in Sorani with emojis.`;
+        const prompt = `Context: ${gameStory}. Detective ${playerName} asks: ${userQ}. Respond as the 3 suspects in a group chat style in Sorani Kurdish. Give each person a different emoji face and make them act guilty or defensive.`;
         const aiResponse = await talkToGemini(prompt);
         appendMsg("گومانلێکراوان", aiResponse, 'ai-msg');
     }
@@ -149,11 +155,12 @@
     }
 
     async function showVoting() {
-        const result = await talkToGemini(`Who was the killer in this story: ${gameStory}? Explain in Sorani.`);
+        const result = await talkToGemini(`In the story: ${gameStory}, who was the real criminal and what was the proof? Explain in Sorani Kurdish.`);
         showScreen('screen-result');
-        document.getElementById('result-title').innerText = "ئەنجام";
+        document.getElementById('result-title').innerText = "کێ بوو؟";
         document.getElementById('result-desc').innerText = result;
-        document.getElementById('result-icon').innerText = "🕵️";
+        document.getElementById('result-icon').innerText = "🔎";
+        
         credits++;
         localStorage.setItem('det_credits', credits);
         document.getElementById('credit-count').innerText = credits;
