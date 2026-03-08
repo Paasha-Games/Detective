@@ -2,169 +2,232 @@
 <html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لێکۆڵەر | Lêkoler</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>لێکۆڵەر | Lêkoler Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans Arabic', sans-serif; background: #0f172a; color: #f8fafc; overflow-x: hidden; }
+        body { font-family: 'Noto Sans Arabic', sans-serif; background: #020617; color: #f8fafc; overflow: hidden; }
         .hidden { display: none; }
-        .chat-bubble { border-radius: 18px; padding: 12px 16px; margin-bottom: 12px; max-width: 85%; animation: fadeIn 0.3s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-bubble { border-radius: 18px; padding: 12px 16px; margin-bottom: 12px; max-width: 85%; line-height: 1.6; }
         .ai-msg { background: #1e293b; border-right: 4px solid #ef4444; align-self: flex-start; }
-        .user-msg { background: #3b82f6; border-left: 4px solid #ffffff; align-self: flex-end; }
-        input::placeholder { color: #94a3b8; }
+        .user-msg { background: #0369a1; border-left: 4px solid #ffffff; align-self: flex-end; }
+        #chat-container { height: 55vh; overflow-y: auto; display: flex; flex-direction: column; scroll-behavior: smooth; }
+        .suspect-card { background: #1e293b; border: 1px solid #334155; padding: 10px; border-radius: 12px; margin-bottom: 8px; }
+        .glitch { animation: glitch 1s linear infinite; }
+        @keyframes glitch { 2%, 64% { transform: translate(2px,0) skew(0deg); } 4%, 60% { transform: translate(-2px,0) skew(0deg); } 62% { transform: translate(0,0) skew(5deg); } }
     </style>
 </head>
 <body>
 
-    <div id="screen-menu" class="flex flex-col items-center justify-center h-screen p-6">
-        <div class="bg-red-600/10 p-10 rounded-full mb-6 border border-red-500/30">
-            <h1 class="text-7xl font-bold text-red-500">لێکۆڵەر</h1>
-        </div>
-        <p class="text-xl mb-10 text-slate-400">گەورەترین یاری تاقیکردنەوەی زیرەکی و لێکۆڵینەوە</p>
-        <button onclick="showScreen('screen-name')" class="bg-red-600 hover:bg-red-500 text-white px-16 py-4 rounded-xl text-2xl font-bold shadow-lg shadow-red-900/40 transition-all">دەستپێکردن</button>
-        <div class="mt-8 text-slate-500 font-bold">پلەی لێکۆڵەر: ⭐ <span id="credit-count">0</span></div>
+    <nav class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+        <span class="text-red-500 font-bold text-xl">لێکۆڵەر</span>
+        <div class="text-yellow-500 font-bold text-sm">⭐ نمرە: <span id="credit-count">0</span></div>
+    </nav>
+
+    <div id="screen-menu" class="flex flex-col items-center justify-center h-[90vh] p-6 text-center">
+        <h1 class="text-8xl font-black text-white mb-2 tracking-tighter italic">لێکۆڵەر</h1>
+        <div class="h-1 w-24 bg-red-600 mb-8"></div>
+        <p class="text-slate-400 text-lg mb-12 max-w-xs">وەرە ناو جیهانی تاوان و زیرەکی، نهێنییەکان ئاشکرا بکە.</p>
+        <button onclick="showScreen('screen-name')" class="bg-white text-black px-20 py-5 rounded-2xl text-2xl font-black hover:bg-red-600 hover:text-white transition-all transform hover:scale-105 active:scale-95 shadow-2xl shadow-red-600/20">دەستپێکردن</button>
     </div>
 
-    <div id="screen-name" class="hidden flex flex-col items-center justify-center h-screen p-6">
-        <h2 class="text-3xl mb-8">ناوی لێکۆڵەر بنووسە:</h2>
-        <input type="text" id="player-name" class="bg-slate-800 border-2 border-slate-700 rounded-2xl p-4 text-center text-2xl w-full max-w-sm focus:border-red-500 outline-none transition-all" placeholder="وەک: ئاراس">
-        <button onclick="startGame()" class="mt-8 bg-slate-100 text-slate-900 px-10 py-3 rounded-xl text-xl font-bold">دواتر</button>
+    <div id="screen-name" class="hidden flex flex-col items-center justify-center h-[90vh] p-6">
+        <h2 class="text-2xl mb-8 font-bold text-slate-300">ناوی لێکۆڵەر:</h2>
+        <input type="text" id="player-name" class="bg-slate-900 border-2 border-slate-700 rounded-2xl p-5 text-center text-2xl w-full max-w-sm focus:border-red-600 outline-none transition-all shadow-inner" placeholder="...">
+        <button onclick="startGame()" class="mt-8 bg-red-600 text-white px-12 py-4 rounded-xl text-xl font-bold w-full max-w-sm">دواتر</button>
     </div>
 
-    <div id="screen-story" class="hidden flex flex-col items-center justify-center min-h-screen p-6">
-        <div class="max-w-xl w-full bg-slate-800/50 p-8 rounded-3xl border border-slate-700 backdrop-blur-sm">
-            <div class="flex items-center gap-3 mb-4 text-red-400">
-                <span class="text-2xl">🔍</span>
-                <h3 class="text-2xl font-bold text-right">ڕاپۆرتی تاوان:</h3>
+    <div id="screen-story" class="hidden flex flex-col items-center justify-center min-h-[90vh] p-6">
+        <div class="max-w-xl w-full bg-slate-900 p-8 rounded-[2rem] border border-slate-800 shadow-2xl">
+            <div class="flex items-center gap-2 mb-6">
+                <div class="w-3 h-3 bg-red-600 rounded-full animate-ping"></div>
+                <h3 class="text-xl font-bold text-red-500 uppercase tracking-widest">کەیسی نوێ</h3>
             </div>
-            <p id="story-text" class="text-xl leading-relaxed text-slate-200 mb-10 text-right">خەریکە ڕاپۆرتەکە ئامادە دەکرێت...</p>
-            <button onclick="showScreen('screen-chat')" class="w-full bg-green-600 hover:bg-green-500 py-4 rounded-2xl font-bold text-xl transition-all">چوونە ناو گرووپی گومانلێکراوان</button>
-        </div>
-    </div>
-
-    <div id="screen-chat" class="hidden flex flex-col h-screen max-w-2xl mx-auto border-x border-slate-800 bg-slate-900/50">
-        <header class="p-4 bg-slate-800 flex justify-between items-center shadow-xl">
-            <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span class="font-bold text-slate-300">گرووپی لێکۆڵینەوە</span>
-            </div>
-            <button onclick="showVoting()" class="bg-yellow-500 text-slate-900 px-4 py-2 rounded-lg font-bold text-sm">کێ تاوانبارە؟ ⚖️</button>
-        </header>
-        
-        <div id="chat-box" class="flex-1 overflow-y-auto p-4 flex flex-col">
-            </div>
-
-        <div class="p-4 bg-slate-800 flex gap-2">
-            <input type="text" id="user-input" placeholder="پرسیار لە گومانلێکراوان بکە..." class="flex-1 bg-slate-900 p-4 rounded-xl border border-slate-700 focus:outline-none focus:border-blue-500">
-            <button onclick="sendMessage()" class="bg-blue-600 px-6 py-2 rounded-xl text-2xl">🕊️</button>
+            <p id="story-text" class="text-xl leading-relaxed text-slate-300 mb-10 text-right">چاوەڕێی کەیسەکە بکە...</p>
+            <button id="btn-to-chat" disabled onclick="showScreen('screen-chat')" class="w-full bg-slate-800 text-slate-500 py-5 rounded-2xl font-black text-xl transition-all">چوونە ژووری لێکۆڵینەوە</button>
         </div>
     </div>
 
-    <div id="screen-result" class="hidden flex flex-col items-center justify-center h-screen p-6 text-center">
-        <div id="result-icon" class="text-8xl mb-6"></div>
-        <h2 id="result-title" class="text-5xl font-bold mb-4"></h2>
-        <p id="result-desc" class="text-xl text-slate-400 mb-10 max-w-md"></p>
-        <button onclick="location.reload()" class="bg-red-600 px-12 py-4 rounded-2xl font-bold text-xl shadow-xl">یاری نوێ 🔄</button>
+    <div id="screen-chat" class="hidden flex flex-col h-[90vh] max-w-2xl mx-auto bg-slate-950">
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <div class="p-4 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
+                <button onclick="toggleFiles()" class="bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-md text-sm font-bold">📂 پەڕەی زانیاری</button>
+                <button id="vote-trigger" class="hidden bg-red-600 text-white px-4 py-1 rounded-md text-sm font-bold animate-bounce" onclick="showVotingOptions()">کێ تاوانبارە؟</button>
+            </div>
+
+            <div id="police-files" class="hidden absolute inset-0 bg-slate-950 z-50 p-6 overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-blue-400">داتابەیسی پۆلیس</h3>
+                    <button onclick="toggleFiles()" class="text-slate-400 text-3xl">&times;</button>
+                </div>
+                <div id="suspect-list-files"></div>
+            </div>
+
+            <div id="chat-container" class="p-4">
+                <div id="chat-box" class="flex flex-col"></div>
+            </div>
+
+            <div id="voting-zone" class="hidden p-4 bg-slate-900 border-t border-red-600">
+                <p class="text-center mb-4 text-red-500 font-bold italic">یەکێک وەک تاوانبار دەستنیشان بکە:</p>
+                <div id="suspect-btns" class="grid grid-cols-1 gap-2"></div>
+            </div>
+
+            <div id="input-area" class="p-4 bg-slate-900 flex gap-2">
+                <input type="text" id="user-input" placeholder="پرسیار بکە..." class="flex-1 bg-slate-950 p-4 rounded-xl border border-slate-800 outline-none focus:border-red-600">
+                <button onclick="sendMessage()" class="bg-red-600 px-6 py-2 rounded-xl text-2xl shadow-lg">🕊️</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-result" class="hidden flex flex-col items-center justify-center h-[90vh] p-6 text-center">
+        <div id="result-icon" class="text-9xl mb-6"></div>
+        <h2 id="result-title" class="text-5xl font-black mb-4 uppercase"></h2>
+        <p id="result-desc" class="text-xl text-slate-400 mb-12 max-w-md leading-relaxed"></p>
+        <button onclick="location.reload()" class="bg-white text-black px-16 py-5 rounded-2xl font-black text-xl hover:bg-red-600 hover:text-white transition-all">یاریەکی نوێ 🔄</button>
     </div>
 
     <script>
-    // 1. THE SPLIT KEY (Ensures GitHub doesn't block it)
-    const p1 = "AIzaSyA6lx6xK4UGAL"; 
-    const p2 = "Xs2T0YAPbCytE4EJ1TbWI"; 
-    const key = (p1 + p2).trim();
+        const p1 = "AIzaSyA6lx6xK4UGAL"; 
+        const p2 = "Xs2T0YAPbCytE4EJ1TbWI"; 
+        const key = (p1 + p2).trim();
 
-    let credits = parseInt(localStorage.getItem('det_credits')) || 0;
-    let playerName = "";
-    let gameStory = "";
+        let credits = parseInt(localStorage.getItem('det_credits')) || 0;
+        let playerName = "";
+        let gameStory = "";
+        let suspects = [];
+        let killerName = "";
+        let messageCount = 0;
 
-    document.getElementById('credit-count').innerText = credits;
+        document.getElementById('credit-count').innerText = credits;
 
-    function showScreen(id) {
-        document.querySelectorAll('div[id^="screen-"]').forEach(s => s.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-    }
+        function showScreen(id) {
+            document.querySelectorAll('div[id^="screen-"]').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
 
-    async function talkToGemini(promptText) {
-        // MARCH 2026: Using the Stable v1 endpoint for Gemini 2.5 Flash
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${key}`;
-        
-        const payload = {
-            contents: [{ parts: [{ text: promptText }] }],
-            // Gemini 2.5 Flash supports "Thinking" - this makes the mystery better!
-            generationConfig: {
-                temperature: 0.7,
-                topK: 40,
-                topP: 0.95,
-            }
-        };
+        function toggleFiles() {
+            document.getElementById('police-files').classList.toggle('hidden');
+        }
 
-        try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+        async function talkToGemini(promptText) {
+            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${key}`;
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+                });
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            } catch (e) { return "هەڵە لە پەیوەندی بە سیستەمی لێکۆڵینەوە."; }
+        }
+
+        async function startGame() {
+            playerName = document.getElementById('player-name').value || "لێکۆڵەر";
+            showScreen('screen-story');
+            
+            const prompt = `Act as a Crime Thriller Writer. Create a short crime case in Sorani Kurdish.
+            Detective's name is ${playerName}.
+            1. Describe the crime scene in a Kurdish city.
+            2. Choose 3 RANDOM suspects (names, jobs, and a secret).
+            3. SECRETLY decide the killer.
+            Output format:
+            STORY: [Story here]
+            SUSPECTS: Name1 (Job), Name2 (Job), Name3 (Job)
+            KILLER: Name`;
+            
+            const result = await talkToGemini(prompt);
+            gameStory = result;
+            
+            // Parsing
+            const suspectsPart = result.match(/SUSPECTS: (.*?)(\n|$)/)[1];
+            suspects = suspectsPart.split(',').map(s => s.trim());
+            killerName = result.match(/KILLER: (.*?)(\n|$)/)[1].trim();
+
+            document.getElementById('story-text').innerText = result.split('SUSPECTS:')[0].replace('STORY:', '');
+            
+            // Build Police Files
+            const fileList = document.getElementById('suspect-list-files');
+            fileList.innerHTML = "";
+            suspects.forEach(s => {
+                fileList.innerHTML += `<div class="suspect-card"><h4 class="text-red-500 font-bold">${s}</h4><p class="text-xs text-slate-500 italic">گومانلێکراوی ژمارە ${suspects.indexOf(s)+1}</p></div>`;
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                console.error("API Error:", data);
-                // If it's a 404, the model ID might have a regional suffix (like -001)
-                return "هەڵە: پەیوەندی بە مۆدێلی Gemini 2.5 سەرکەوتوو نەبوو.";
-            }
-
-            return data.candidates[0].content.parts[0].text;
-        } catch (e) {
-            console.error("Network Error:", e);
-            return "پەیوەندی ئینتەرنێت نییە.";
+            const startBtn = document.getElementById('btn-to-chat');
+            startBtn.disabled = false;
+            startBtn.className = "w-full bg-red-600 text-white py-5 rounded-2xl font-black text-xl shadow-xl shadow-red-600/20";
         }
-    }
 
-    async function startGame() {
-        playerName = document.getElementById('player-name').value || "لێکۆڵەر";
-        document.getElementById('story-text').innerText = "خەریکە لێکۆڵەرەکان بە هاوکاری Gemini 2.5 ڕاپۆرتەکە دەنووسن...";
-        showScreen('screen-story');
-        
-        const prompt = "Write a Kurdish crime mystery in Sorani. Set in a Kurdish city. Include 3 suspects with names like (Dana, Shano, Bakir). Describe the crime clearly but keep it short. Use Sorani Kurdish.";
-        gameStory = await talkToGemini(prompt);
-        document.getElementById('story-text').innerText = gameStory;
-    }
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const val = input.value;
+            if(!val) return;
 
-    async function sendMessage() {
-        const input = document.getElementById('user-input');
-        if(!input.value) return;
+            appendMsg(playerName, val, 'user-msg');
+            input.value = "";
+            messageCount++;
 
-        appendMsg(playerName, input.value, 'user-msg');
-        const userQ = input.value;
-        input.value = "";
+            if(messageCount >= 3) document.getElementById('vote-trigger').classList.remove('hidden');
 
-        const prompt = `Context: ${gameStory}. Detective ${playerName} asks: ${userQ}. Respond as the 3 suspects in a group chat style in Sorani Kurdish. Give each person a different emoji face and make them act guilty or defensive.`;
-        const aiResponse = await talkToGemini(prompt);
-        appendMsg("گومانلێکراوان", aiResponse, 'ai-msg');
-    }
+            const prompt = `You are roleplaying as these 3 suspects: ${suspects.join(', ')}. 
+            The real killer is ${killerName}. 
+            Detective ${playerName} asks: "${val}". 
+            Respond as the characters in a group chat. Use Sorani Kurdish. 
+            One of them should act slightly guilty or tell a small lie.`;
+            
+            const reply = await talkToGemini(prompt);
+            appendMsg("گومانلێکراوان", reply, 'ai-msg');
+        }
 
-    function appendMsg(sender, text, type) {
-        const box = document.getElementById('chat-box');
-        const div = document.createElement('div');
-        div.className = `chat-bubble ${type}`;
-        div.innerHTML = `<strong>${sender}</strong><br>${text.replace(/\n/g, '<br>')}`;
-        box.appendChild(div);
-        box.scrollTop = box.scrollHeight;
-    }
+        function appendMsg(sender, text, type) {
+            const box = document.getElementById('chat-box');
+            const div = document.createElement('div');
+            div.className = `chat-bubble ${type}`;
+            div.innerHTML = `<span class="text-[10px] font-black uppercase opacity-50">${sender}</span><br>${text}`;
+            box.appendChild(div);
+            document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+        }
 
-    async function showVoting() {
-        const result = await talkToGemini(`In the story: ${gameStory}, who was the real criminal and what was the proof? Explain in Sorani Kurdish.`);
-        showScreen('screen-result');
-        document.getElementById('result-title').innerText = "کێ بوو؟";
-        document.getElementById('result-desc').innerText = result;
-        document.getElementById('result-icon').innerText = "🔎";
-        
-        credits++;
-        localStorage.setItem('det_credits', credits);
-        document.getElementById('credit-count').innerText = credits;
-    }
-</script>
+        function showVotingOptions() {
+            document.getElementById('input-area').classList.add('hidden');
+            const zone = document.getElementById('voting-zone');
+            zone.classList.remove('hidden');
+            
+            const btnContainer = document.getElementById('suspect-btns');
+            btnContainer.innerHTML = "";
+            suspects.forEach(name => {
+                const pureName = name.split('(')[0].trim();
+                const btn = document.createElement('button');
+                btn.className = "bg-slate-800 hover:bg-red-600 p-4 rounded-xl font-bold transition-all text-right";
+                btn.innerText = `دەستگیرکردنی ${pureName}`;
+                btn.onclick = () => finishGame(pureName);
+                btnContainer.appendChild(btn);
+            });
+        }
+
+        async function finishGame(choice) {
+            const realKillerClean = killerName.split('(')[0].trim().toLowerCase();
+            const playerChoiceClean = choice.toLowerCase();
+            const isWin = realKillerClean.includes(playerChoiceClean) || playerChoiceClean.includes(realKillerClean);
+
+            const prompt = `The player ${playerName} accused ${choice}. The killer was ${killerName}. 
+            Tell the final story of how they were caught or how they escaped in Sorani Kurdish.`;
+            const truth = await talkToGemini(prompt);
+
+            showScreen('screen-result');
+            if(isWin) {
+                credits += 10;
+                localStorage.setItem('det_credits', credits);
+                document.getElementById('result-title').innerText = "سەرکەوتوو بوویت!";
+                document.getElementById('result-icon').innerText = "🏆";
+                document.getElementById('credit-count').innerText = credits;
+            } else {
+                document.getElementById('result-title').innerText = "دۆڕایت!";
+                document.getElementById('result-icon').innerText = "💀";
+            }
+            document.getElementById('result-desc').innerText = truth;
+        }
+    </script>
 </body>
 </html>
