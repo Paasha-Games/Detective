@@ -7,14 +7,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans Arabic', sans-serif; background: #0f172a; color: #f8fafc; touch-action: manipulation; }
+        body { font-family: 'Noto Sans Arabic', sans-serif; background: #0f172a; color: #f8fafc; touch-action: manipulation; overflow-x: hidden; }
         .hidden { display: none; }
-        .chat-bubble { border-radius: 18px; padding: 12px 16px; margin-bottom: 12px; max-width: 85%; }
+        .chat-bubble { border-radius: 18px; padding: 12px 16px; margin-bottom: 12px; max-width: 85%; word-wrap: break-word; }
         .ai-msg { background: #1e293b; border-right: 4px solid #ef4444; align-self: flex-start; }
         .user-msg { background: #3b82f6; border-left: 4px solid #ffffff; align-self: flex-end; }
-        /* Fixes the chat scroll and prevents UI jump */
-        #chat-container { height: 60vh; overflow-y: auto; display: flex; flex-direction: column; }
-        .suspect-btn { background: #334155; transition: 0.3s; border: 1px solid #475569; }
+        
+        /* Fixed UI structure to prevent button disappearing */
+        #screen-chat { display: flex; flex-direction: column; height: 100vh; }
+        #chat-container { flex-grow: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; }
+        
+        .suspect-btn { background: #334155; transition: 0.3s; border: 1px solid #475569; width: 100%; text-align: right; }
         .suspect-btn:hover { background: #ef4444; border-color: white; }
     </style>
 </head>
@@ -36,27 +39,27 @@
     <div id="screen-story" class="hidden flex flex-col items-center justify-center min-h-screen p-6">
         <div class="max-w-xl w-full bg-slate-800/50 p-8 rounded-3xl border border-slate-700">
             <h3 class="text-2xl font-bold mb-4 text-red-400 text-right">ڕاپۆرتی تاوان:</h3>
-            <p id="story-text" class="text-xl leading-relaxed text-slate-200 mb-10 text-right">چاوەڕێی کەیسەکە بکە...</p>
+            <p id="story-text" class="text-xl leading-relaxed text-slate-200 mb-10 text-right italic">چاوەڕێی کەیسەکە بکە...</p>
             <button id="btn-to-chat" disabled onclick="showScreen('screen-chat')" class="w-full bg-slate-600 py-4 rounded-2xl font-bold text-xl opacity-50 cursor-not-allowed transition-all">چوونە ناو گرووپی گومانلێکراوان</button>
         </div>
     </div>
 
-    <div id="screen-chat" class="hidden flex flex-col h-screen max-w-2xl mx-auto bg-slate-900">
-        <header class="p-4 bg-slate-800 flex justify-between items-center shadow-md z-10">
+    <div id="screen-chat" class="hidden max-w-2xl mx-auto bg-slate-900">
+        <header class="p-4 bg-slate-800 flex justify-between items-center shadow-md sticky top-0 z-50">
             <span class="font-bold text-slate-300">گرووپی لێکۆڵینەوە</span>
             <button id="vote-trigger" class="hidden bg-yellow-500 text-slate-900 px-4 py-2 rounded-lg font-bold" onclick="showVotingOptions()">کێ تاوانبارە؟ ⚖️</button>
         </header>
         
-        <div id="chat-container" class="flex-1 p-4">
+        <div id="chat-container">
             <div id="chat-box" class="flex flex-col"></div>
         </div>
 
         <div id="voting-zone" class="hidden p-4 bg-slate-800 border-t border-red-500/30">
-            <p class="text-center mb-4 text-yellow-400 font-bold">یەکێک هەڵبژێرە:</p>
+            <p class="text-center mb-4 text-yellow-400 font-bold">تۆمەتبارێک دەستنیشان بکە:</p>
             <div id="suspect-list" class="flex flex-col gap-2"></div>
         </div>
 
-        <div id="chat-input-area" class="p-4 bg-slate-800 flex gap-2">
+        <div id="chat-input-area" class="p-4 bg-slate-800 flex gap-2 sticky bottom-0">
             <input type="text" id="user-input" placeholder="پرسیار بکە..." class="flex-1 bg-slate-900 p-4 rounded-xl border border-slate-700 outline-none">
             <button onclick="sendMessage()" class="bg-blue-600 px-6 py-2 rounded-xl text-2xl">🕊️</button>
         </div>
@@ -105,15 +108,14 @@
             playerName = document.getElementById('player-name').value || "لێکۆڵەر";
             showScreen('screen-story');
             
-            const prompt = `Write a short crime story in Sorani Kurdish. Detective's name is ${playerName}.
-            Pick 3 RANDOM Kurdish names for suspects (DON'T always use Dana, Shano, Bakir).
-            List the 3 names clearly at the end like: [NAMES: Name1, Name2, Name3] and tell me the killer like [KILLER: Name].
-            The story should be a mystery in a Kurdish city.`;
+            const prompt = `Write a short crime story in Sorani Kurdish. The Detective's name is ${playerName}. 
+            ALWAYS refer to the detective as ${playerName}.
+            Pick 3 RANDOM Kurdish names for suspects (Mix it up every time, avoid repeating the same names).
+            List the 3 names clearly at the end like: [NAMES: Name1, Name2, Name3] and tell me the killer like [KILLER: Name].`;
             
             const result = await talkToGemini(prompt);
             gameStory = result;
             
-            // Extract suspects and killer from AI response
             const nameMatch = result.match(/\[NAMES: (.*?)\]/);
             const killerMatch = result.match(/\[KILLER: (.*?)\]/);
             
@@ -122,6 +124,7 @@
 
             document.getElementById('story-text').innerText = result.split('[')[0];
             
+            // Enable button after case is generated
             const startBtn = document.getElementById('btn-to-chat');
             startBtn.disabled = false;
             startBtn.classList.replace('bg-slate-600', 'bg-green-600');
@@ -137,6 +140,7 @@
             input.value = "";
             messageCount++;
 
+            // Show vote button after 3 questions
             if(messageCount >= 3) document.getElementById('vote-trigger').classList.remove('hidden');
 
             const prompt = `You are a group chat of these suspects: ${suspects.join(', ')}. 
@@ -151,7 +155,9 @@
             div.className = `chat-bubble ${type}`;
             div.innerHTML = `<strong>${sender}</strong><br>${text}`;
             box.appendChild(div);
-            document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+            
+            const container = document.getElementById('chat-container');
+            container.scrollTop = container.scrollHeight;
         }
 
         function showVotingOptions() {
@@ -172,13 +178,13 @@
 
         async function finishGame(choice) {
             const isWin = (choice.toLowerCase() === killerName.toLowerCase());
-            const prompt = `The player chose ${choice} as the killer. The real killer was ${killerName}. 
+            const prompt = `The player ${playerName} chose ${choice} as the killer. The real killer was ${killerName}. 
             Explain the ending in Sorani Kurdish.`;
             const truth = await talkToGemini(prompt);
 
             showScreen('screen-result');
             if(isWin) {
-                credits++;
+                credits++; // Credit only goes up on win
                 localStorage.setItem('det_credits', credits);
                 document.getElementById('result-title').innerText = "دەستخۆش! بردیانەوە 🏆";
                 document.getElementById('result-icon').innerText = "✅";
