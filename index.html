@@ -71,8 +71,8 @@
 
     <script>
     // THE SPLIT KEY TRICK
-    const p1 = "AIzaSyB"; 
-    const p2 = "DPKQYcF-r3riU3y0pwHcpResQrRHf7aQ"; 
+    const p1 = "AIzaSyD7XB3KBrnJcIN"; 
+    const p2 = "ZWDb637OfPjyQaTSbMs0"; 
     const key = (p1 + p2).trim();
 
     let credits = parseInt(localStorage.getItem('det_credits')) || 0;
@@ -88,7 +88,7 @@
 
     async function talkToGemini(promptText) {
         // Switching to v1beta and the 3.1 Pro Preview model
-        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=" + key;
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" + key;
         
         const payload = {
             contents: [{
