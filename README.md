@@ -1,0 +1,2 @@
+# Detective
+Kurdish Detective Game.
