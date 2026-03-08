@@ -2,56 +2,29 @@
 <html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>لێکۆڵەر | Lêkoler</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Block the whole page from scrolling or bouncing */
-        html, body { 
-            height: 100%; 
-            width: 100%; 
-            margin: 0; 
-            padding: 0; 
-            overflow: hidden; 
+        body { 
+            font-family: 'Noto Sans Arabic', sans-serif; 
             background: #020617; 
-            color: #f8fafc;
-            font-family: 'Noto Sans Arabic', sans-serif;
-            -webkit-user-select: none;
-            touch-action: none;
-        }
-
-        /* Screen Wrapper */
-        .screen-container {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            color: #f8fafc; 
+            margin: 0;
+            padding: 0;
         }
 
         .hidden { display: none !important; }
 
-        /* THE FIX: Independent Scroll Zone for Chat */
-        #chat-container { 
-            flex: 1; 
-            overflow-y: scroll; /* Forces scrollability */
-            overflow-x: hidden;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            touch-action: pan-y; /* Allows swiping up and down only */
-            -webkit-overflow-scrolling: touch;
-        }
-
-        /* Chat Bubbles Styling */
+        /* Default Scroll: Let the page handle it naturally */
         .chat-bubble { 
             border-radius: 18px; 
             padding: 12px 16px; 
             margin-bottom: 15px; 
-            max-width: 88%; 
+            max-width: 85%; 
             font-style: normal; 
-            line-height: 1.5;
-            word-wrap: break-word;
+            line-height: 1.6;
         }
         .ai-msg { background: #1e293b; border-right: 4px solid #ef4444; align-self: flex-start; }
         .user-msg { background: #3b82f6; border-left: 4px solid #ffffff; align-self: flex-end; }
@@ -64,64 +37,76 @@
             padding: 15px;
             border-radius: 15px;
             margin-bottom: 8px;
+            font-weight: bold;
         }
         
-        .glass {
-            background: rgba(15, 23, 42, 0.9);
+        /* Sticky Header and Input for better UX while scrolling */
+        header {
+            position: sticky;
+            top: 0;
+            background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(8px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 50;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        #chat-input-area {
+            position: sticky;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid #1e293b;
+            padding: 15px;
         }
     </style>
 </head>
 <body>
 
-    <div id="screen-menu" class="screen-container items-center justify-center p-6 text-center">
+    <div id="screen-menu" class="flex flex-col items-center justify-center min-h-screen p-6 text-center">
         <h1 class="text-8xl font-black text-red-600 mb-2 italic">لێکۆڵەر</h1>
         <p class="text-slate-400 text-lg mb-12">گەورەترین تاقیکردنەوەی لێکۆڵینەوە</p>
-        <button onclick="showScreen('screen-name')" class="bg-white text-black px-20 py-5 rounded-2xl text-2xl font-black shadow-2xl active:scale-95">دەستپێکردن</button>
+        <button onclick="showScreen('screen-name')" class="bg-white text-black px-20 py-5 rounded-2xl text-2xl font-black shadow-2xl">دەستپێکردن</button>
         <div class="mt-8 text-slate-500 font-bold">⭐ نمرە: <span id="credit-count">0</span></div>
     </div>
 
-    <div id="screen-name" class="screen-container hidden items-center justify-center p-6">
-        <div class="bg-slate-900/50 p-8 rounded-[2rem] w-full max-w-sm border border-slate-800">
+    <div id="screen-name" class="hidden flex flex-col items-center justify-center min-h-screen p-6">
+        <div class="bg-slate-900 p-8 rounded-[2rem] w-full max-w-sm border border-slate-800">
             <h2 class="text-xl mb-6 text-slate-300">ناوی لێکۆڵەر بنووسە:</h2>
             <input type="text" id="player-name" class="bg-slate-950 border-2 border-slate-800 rounded-xl p-4 text-center w-full outline-none focus:border-red-600">
             <button onclick="startGame()" class="mt-6 bg-red-600 w-full py-4 rounded-xl font-bold">دواتر</button>
         </div>
     </div>
 
-    <div id="screen-story" class="screen-container hidden items-center justify-center p-6">
+    <div id="screen-story" class="hidden flex flex-col items-center justify-center min-h-screen p-6 text-right">
         <div class="max-w-md w-full bg-slate-900 p-8 rounded-[2rem] border border-red-900/30">
             <h3 class="text-red-500 font-bold mb-4">ڕاپۆرتی تاوان:</h3>
             <p id="story-text" class="text-lg leading-relaxed text-slate-200 mb-8">چاوەڕێی کەیسەکە بکە...</p>
-            <button id="btn-to-chat" disabled onclick="showScreen('screen-chat')" class="w-full bg-slate-800 text-slate-500 py-5 rounded-2xl font-black">چوونە ژوورەوە</button>
+            <button id="btn-to-chat" disabled onclick="showScreen('screen-chat')" class="w-full bg-slate-800 text-slate-500 py-5 rounded-2xl font-black">چوونە ناو گرووپ</button>
         </div>
     </div>
 
-    <div id="screen-chat" class="screen-container hidden bg-slate-950">
-        <header class="p-4 glass flex justify-between items-center">
+    <div id="screen-chat" class="hidden min-h-screen flex flex-col max-w-2xl mx-auto">
+        <header class="p-4 flex justify-between items-center">
             <span class="font-bold text-white">گرووپی لێکۆڵینەوە</span>
             <button id="vote-trigger" class="hidden bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold" onclick="showVotingOptions()">کێ تاوانبارە؟</button>
         </header>
         
-        <div id="chat-container">
-            <div id="chat-box" class="flex flex-col"></div>
-        </div>
+        <div id="chat-box" class="flex flex-col p-4 flex-grow"></div>
 
-        <div id="chat-input-area" class="p-4 glass flex gap-2">
-            <input type="text" id="user-input" placeholder="پرسیار بکە..." class="flex-1 bg-slate-900 p-4 rounded-xl border border-slate-800 outline-none focus:border-red-600 text-sm">
-            <button onclick="sendMessage()" class="bg-red-600 px-6 rounded-xl text-xl">🕊️</button>
-        </div>
-
-        <div id="voting-zone" class="hidden p-4 glass border-t border-red-600/30">
+        <div id="voting-zone" class="hidden p-4 bg-slate-900 border-t border-red-600/30">
             <p class="text-center text-yellow-500 mb-3 text-xs">تۆمەتبارێک دەستگیر بکە:</p>
             <div id="suspect-list"></div>
         </div>
+
+        <div id="chat-input-area" class="flex gap-2">
+            <input type="text" id="user-input" placeholder="پرسیار بکە..." class="flex-1 bg-slate-900 p-4 rounded-xl border border-slate-800 outline-none focus:border-red-600">
+            <button onclick="sendMessage()" class="bg-red-600 px-6 rounded-xl text-xl">🕊️</button>
+        </div>
     </div>
 
-    <div id="screen-result" class="screen-container hidden items-center justify-center p-6 text-center">
+    <div id="screen-result" class="hidden flex flex-col items-center justify-center min-h-screen p-6 text-center">
         <div id="result-icon" class="text-8xl mb-4"></div>
-        <h2 id="result-title" class="text-4xl font-black mb-4 uppercase"></h2>
+        <h2 id="result-title" class="text-4xl font-black mb-4"></h2>
         <p id="result-desc" class="text-lg text-slate-400 mb-10 leading-relaxed"></p>
         <button onclick="location.reload()" class="bg-white text-black px-12 py-4 rounded-xl font-bold">دووبارە 🔄</button>
     </div>
@@ -139,8 +124,9 @@
         document.getElementById('credit-count').innerText = credits;
 
         function showScreen(id) {
-            document.querySelectorAll('.screen-container').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('div[id^="screen-"]').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
+            window.scrollTo(0,0);
         }
 
         async function talkToGemini(promptText) {
@@ -185,9 +171,9 @@
 
             if(messageCount >= 3) document.getElementById('vote-trigger').classList.remove('hidden');
 
-            const prompt = `Roleplay as suspects: ${suspects.join(', ')}. Question: "${val}". 
+            const prompt = `Roleplay as suspects: ${suspects.join(', ')}. Question from detective: "${val}". 
             Respond in Sorani Kurdish. 
-            MANDATORY FORMAT: Put the suspect name in parentheses followed by their talk, like this: (**Name**): Response text.
+            MANDATORY FORMAT: (**Name**): Response text.
             Put a double space between each suspect's response. No italics.`;
             
             const reply = await talkToGemini(prompt);
@@ -201,10 +187,7 @@
             const formattedText = text.replace(/\n/g, '<br>');
             div.innerHTML = `<span class="text-[9px] font-bold uppercase opacity-50 block mb-1">${sender}</span>${formattedText}`;
             box.appendChild(div);
-            
-            // Auto-scroll to bottom
-            const container = document.getElementById('chat-container');
-            container.scrollTop = container.scrollHeight;
+            window.scrollTo(0, document.body.scrollHeight);
         }
 
         function showVotingOptions() {
@@ -214,7 +197,7 @@
             list.innerHTML = "";
             suspects.forEach(name => {
                 const btn = document.createElement('button');
-                btn.className = "suspect-btn font-bold text-white";
+                btn.className = "suspect-btn text-white";
                 btn.innerText = `دەستگیرکردنی ${name}`;
                 btn.onclick = () => finishGame(name);
                 list.appendChild(btn);
