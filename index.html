@@ -70,11 +70,10 @@
     </div>
 
     <script>
-    // 1. Double-check your key parts. 
-    // Make sure there are NO spaces inside the quotes.
-    const part1 = "AIzaSyB"; 
-    const part2 = "DPKQYcF-r3riU3y0pwHcpResQrRHf7aQ"; 
-    const API_KEY = (part1 + part2).trim();
+    // THE SPLIT KEY - Double check these are exactly correct!
+    const p1 = "AIzaSyB"; 
+    const p2 = "DPKQYcF-r3riU3y0pwHcpResQrRHf7aQ"; 
+    const key = (p1 + p2).trim();
 
     let credits = parseInt(localStorage.getItem('det_credits')) || 0;
     let playerName = "";
@@ -87,82 +86,76 @@
         document.getElementById(id).classList.remove('hidden');
     }
 
-    async function talkToGemini(prompt) {
+    async function talkToGemini(promptText) {
+        // We use v1beta here because it's often more compatible with free keys
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + key;
+        
+        const payload = {
+            contents: [{
+                parts: [{ text: promptText }]
+            }]
+        };
+
         try {
-            // FIXED URL: Removed 'v1beta' and used 'v1' for maximum stability
-            // Also ensured the model name is exactly 'gemini-1.5-flash'
-            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${API_KEY}`;
-            
             const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                console.log("Full Error Object:", errorData); // This helps us debug
-                return "هەڵە: وادیارە کێشەیەک لە سێرڤەر هەیە. تکایە دووبارە تاقیکەرەوە.";
+                const err = await response.json();
+                // This will pop up a box telling us EXACTLY what Google says is wrong
+                alert("Google Error: " + err.error.message);
+                return "کێشەیەک لە سێرڤەر هەیە.";
             }
 
             const data = await response.json();
             return data.candidates[0].content.parts[0].text;
         } catch (e) {
-            console.error("Network Error:", e);
-            return "پەیوەندی ئینتەرنێتەکەت تاقیکەرەوە یان دڵنیابە لە کلیلی API.";
+            alert("Connection Error: " + e.message);
+            return "پەیوەندی ئینتەرنێت نییە.";
         }
     }
 
     async function startGame() {
         playerName = document.getElementById('player-name').value || "لێکۆڵەر";
-        document.getElementById('story-text').innerText = "خەریکە لێکۆڵەرەکان ڕاپۆرتەکە دەنووسن... چاوەڕێبە...";
+        document.getElementById('story-text').innerText = "چاوەڕێبە... خەریکە چیرۆکەکە دروست دەبێت...";
         showScreen('screen-story');
         
-        const prompt = `Write a crime story in Sorani Kurdish. 
-        Set it in a Kurdish city. Include 3 suspects with Kurdish names. 
-        Describe the mystery but don't say who did it. Keep it short.`;
-        
-        const result = await talkToGemini(prompt);
-        gameStory = result;
-        document.getElementById('story-text').innerText = result;
+        const prompt = "Write a very short crime mystery in Sorani Kurdish. Set it in Kurdistan. Mention 3 suspects. Don't reveal the answer.";
+        gameStory = await talkToGemini(prompt);
+        document.getElementById('story-text').innerText = gameStory;
     }
 
     async function sendMessage() {
         const input = document.getElementById('user-input');
-        const val = input.value;
-        if(!val) return;
+        if(!input.value) return;
 
-        appendMsg(playerName, val, 'user-msg');
+        appendMsg(playerName, input.value, 'user-msg');
+        const userQ = input.value;
         input.value = "";
 
-        const prompt = `Story: ${gameStory}. The detective says: "${val}". 
-        Respond as the 3 suspects in a group chat in Sorani Kurdish. 
-        Be funny and use emojis for their faces.`;
-
-        const reply = await talkToGemini(prompt);
-        appendMsg("گومانلێکراوان", reply, 'ai-msg');
+        const prompt = `Context: ${gameStory}. Detective asks: ${userQ}. Respond as 3 suspicious Kurdish characters in Sorani with emojis.`;
+        const aiResponse = await talkToGemini(prompt);
+        appendMsg("گومانلێکراوان", aiResponse, 'ai-msg');
     }
 
     function appendMsg(sender, text, type) {
         const box = document.getElementById('chat-box');
         const div = document.createElement('div');
         div.className = `chat-bubble ${type}`;
-        div.innerHTML = `<span class="text-xs font-bold opacity-50">${sender}</span><br>${text.replace(/\n/g, '<br>')}`;
+        div.innerHTML = `<strong>${sender}</strong><br>${text.replace(/\n/g, '<br>')}`;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
     }
 
     async function showVoting() {
-        const prompt = `Reveal the killer and the reason from the story in Sorani Kurdish.`;
-        const finalTruth = await talkToGemini(prompt);
-        
+        const result = await talkToGemini("Explain who was the criminal in the story: " + gameStory + " in Sorani Kurdish.");
         showScreen('screen-result');
-        document.getElementById('result-title').innerText = "کێ تاوانبار بوو؟";
-        document.getElementById('result-desc').innerText = finalTruth;
-        document.getElementById('result-icon').innerText = "🔎";
-        
+        document.getElementById('result-title').innerText = "ئەنجامی کۆتایی";
+        document.getElementById('result-desc').innerText = result;
+        document.getElementById('result-icon').innerText = "🕵️";
         credits++;
         localStorage.setItem('det_credits', credits);
         document.getElementById('credit-count').innerText = credits;
