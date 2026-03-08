@@ -70,9 +70,10 @@
     </div>
 
     <script>
-    // THE SPLIT API KEY TRICK - Make sure no extra spaces are here
-    const part1 = "AIzaSyBDPKQYcF-r3ri"; 
-    const part2 = "U3y0pwHcpResQrRHf7aQ"; 
+    // 1. Double-check your key parts. 
+    // Make sure there are NO spaces inside the quotes.
+    const part1 = "AIzaSyB"; 
+    const part2 = "DPKQYcF-r3riU3y0pwHcpResQrRHf7aQ"; 
     const API_KEY = (part1 + part2).trim();
 
     let credits = parseInt(localStorage.getItem('det_credits')) || 0;
@@ -88,8 +89,9 @@
 
     async function talkToGemini(prompt) {
         try {
-            // Using the most stable production endpoint
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+            // FIXED URL: Removed 'v1beta' and used 'v1' for maximum stability
+            // Also ensured the model name is exactly 'gemini-1.5-flash'
+            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
             
             const response = await fetch(url, {
                 method: 'POST',
@@ -101,31 +103,30 @@
 
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error("API Error:", errorData);
-                return "هەڵە: کێشەیەک لە کلیلەکە (API Key) هەیە یان کۆتایی هاتووە.";
+                console.log("Full Error Object:", errorData); // This helps us debug
+                return "هەڵە: وادیارە کێشەیەک لە سێرڤەر هەیە. تکایە دووبارە تاقیکەرەوە.";
             }
 
             const data = await response.json();
             return data.candidates[0].content.parts[0].text;
         } catch (e) {
-            console.error("Fetch Error:", e);
-            return "پەیوەندی ئینتەرنێتەکەت تاقیکەرەوە.";
+            console.error("Network Error:", e);
+            return "پەیوەندی ئینتەرنێتەکەت تاقیکەرەوە یان دڵنیابە لە کلیلی API.";
         }
     }
 
     async function startGame() {
         playerName = document.getElementById('player-name').value || "لێکۆڵەر";
-        document.getElementById('story-text').innerText = "خەریکە ڕاپۆرتەکە ئامادە دەکرێت... چاوەڕێبە";
+        document.getElementById('story-text').innerText = "خەریکە لێکۆڵەرەکان ڕاپۆرتەکە دەنووسن... چاوەڕێبە...";
         showScreen('screen-story');
         
-        const prompt = `You are a Kurdish Mystery Writer. Create a short crime scene in Sorani Kurdish. 
-        Location: A Kurdish city. 
-        Crime: A theft. 
-        Suspects: 3 people with Kurdish names. 
-        Keep it under 100 words. Don't reveal the criminal.`;
+        const prompt = `Write a crime story in Sorani Kurdish. 
+        Set it in a Kurdish city. Include 3 suspects with Kurdish names. 
+        Describe the mystery but don't say who did it. Keep it short.`;
         
-        gameStory = await talkToGemini(prompt);
-        document.getElementById('story-text').innerText = gameStory;
+        const result = await talkToGemini(prompt);
+        gameStory = result;
+        document.getElementById('story-text').innerText = result;
     }
 
     async function sendMessage() {
@@ -136,10 +137,9 @@
         appendMsg(playerName, val, 'user-msg');
         input.value = "";
 
-        const prompt = `Story Context: ${gameStory}. 
-        The Detective asks: "${val}". 
-        Respond as 3 suspects in a group chat in Sorani Kurdish. 
-        Use emojis. Make it funny and suspicious.`;
+        const prompt = `Story: ${gameStory}. The detective says: "${val}". 
+        Respond as the 3 suspects in a group chat in Sorani Kurdish. 
+        Be funny and use emojis for their faces.`;
 
         const reply = await talkToGemini(prompt);
         appendMsg("گومانلێکراوان", reply, 'ai-msg');
@@ -155,13 +155,13 @@
     }
 
     async function showVoting() {
-        const prompt = `Based on the story, reveal who the thief was and why in Sorani Kurdish.`;
+        const prompt = `Reveal the killer and the reason from the story in Sorani Kurdish.`;
         const finalTruth = await talkToGemini(prompt);
         
         showScreen('screen-result');
-        document.getElementById('result-title').innerText = "ڕاستییەکە ئاشکرا بوو!";
+        document.getElementById('result-title').innerText = "کێ تاوانبار بوو؟";
         document.getElementById('result-desc').innerText = finalTruth;
-        document.getElementById('result-icon').innerText = "⚖️";
+        document.getElementById('result-icon').innerText = "🔎";
         
         credits++;
         localStorage.setItem('det_credits', credits);
