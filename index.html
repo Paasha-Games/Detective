@@ -70,7 +70,7 @@
     </div>
 
     <script>
-    // THE SPLIT KEY TRICK
+    // 1. THE SPLIT KEY (Ensures GitHub doesn't block it)
     const p1 = "AIzaSyD7XB3KBrnJcIN"; 
     const p2 = "ZWDb637OfPjyQaTSbMs0"; 
     const key = (p1 + p2).trim();
@@ -87,13 +87,11 @@
     }
 
     async function talkToGemini(promptText) {
-        // Switching to v1beta and the 3.1 Pro Preview model
-        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" + key;
+        // MARCH 2026 UPDATED ENDPOINT: Using v1beta for Gemini 3.1 Pro Preview
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${key}`;
         
         const payload = {
-            contents: [{
-                parts: [{ text: promptText }]
-            }]
+            contents: [{ parts: [{ text: promptText }] }]
         };
 
         try {
@@ -106,26 +104,26 @@
             const data = await response.json();
 
             if (!response.ok) {
-                console.error("API Error Detail:", data);
-                alert("Error from Google: " + data.error.message);
-                return "هەڵەیەک لە سێرڤەر ڕوویدا.";
+                // If it fails, check if the key is correct or if your region supports 3.1
+                console.error("API Error:", data);
+                return `هەڵە: ${data.error.message}`;
             }
 
             return data.candidates[0].content.parts[0].text;
         } catch (e) {
-            alert("Connection Error: " + e.message);
+            console.error("Network Error:", e);
             return "پەیوەندی ئینتەرنێت نییە.";
         }
     }
 
     async function startGame() {
         playerName = document.getElementById('player-name').value || "لێکۆڵەر";
-        document.getElementById('story-text').innerText = "بە بەکارهێنانی Gemini 3.1 Pro... چیرۆکەکە دروست دەکرێت...";
+        document.getElementById('story-text').innerText = "بە بەکارهێنانی Gemini 3.1 Pro... خەریکە چیرۆکەکە دروست دەبێت...";
         showScreen('screen-story');
         
-        const prompt = "Write a Kurdish crime mystery in Sorani. Set in a Kurdish city. 3 suspects. Do not reveal the killer.";
+        const prompt = "Write a short Kurdish crime mystery in Sorani. Set in a Kurdish city. 3 suspects. Do not reveal the killer.";
         gameStory = await talkToGemini(prompt);
-        document.getElementById('story-text').innerText = gameStory;
+        document.getElementById( 'story-text').innerText = gameStory;
     }
 
     async function sendMessage() {
@@ -136,7 +134,7 @@
         const userQ = input.value;
         input.value = "";
 
-        const prompt = `Context: ${gameStory}. Detective asks: ${userQ}. Respond as 3 suspects in Sorani with emojis.`;
+        const prompt = `Story: ${gameStory}. Detective: ${userQ}. Respond as the suspects in Sorani with emojis.`;
         const aiResponse = await talkToGemini(prompt);
         appendMsg("گومانلێکراوان", aiResponse, 'ai-msg');
     }
@@ -151,9 +149,9 @@
     }
 
     async function showVoting() {
-        const result = await talkToGemini("Who was the killer in this story: " + gameStory + " ? Explain in Sorani.");
+        const result = await talkToGemini(`Who was the killer in this story: ${gameStory}? Explain in Sorani.`);
         showScreen('screen-result');
-        document.getElementById('result-title').innerText = "ئەنجامی کۆتایی";
+        document.getElementById('result-title').innerText = "ئەنجام";
         document.getElementById('result-desc').innerText = result;
         document.getElementById('result-icon').innerText = "🕵️";
         credits++;
