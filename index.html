@@ -87,8 +87,8 @@
     }
 
     async function talkToGemini(promptText) {
-        // Updated to v1 and the Gemini 3.1 Flash-Lite model
-        const url = "https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:generateContent?key=" + key;
+        // Switching to v1beta and the 3.1 Pro Preview model
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=" + key;
         
         const payload = {
             contents: [{
@@ -103,14 +103,14 @@
                 body: JSON.stringify(payload)
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                const err = await response.json();
-                console.error("New Model Error:", err);
-                alert("Status: " + err.error.message);
-                return "کێشەی تەکنیکی لە مۆدێلی نوێ هەیە.";
+                console.error("API Error Detail:", data);
+                alert("Error from Google: " + data.error.message);
+                return "هەڵەیەک لە سێرڤەر ڕوویدا.";
             }
 
-            const data = await response.json();
             return data.candidates[0].content.parts[0].text;
         } catch (e) {
             alert("Connection Error: " + e.message);
@@ -120,7 +120,7 @@
 
     async function startGame() {
         playerName = document.getElementById('player-name').value || "لێکۆڵەر";
-        document.getElementById('story-text').innerText = "بە بەکارهێنانی Gemini 3.1... چیرۆکەکە ئامادە دەکرێت...";
+        document.getElementById('story-text').innerText = "بە بەکارهێنانی Gemini 3.1 Pro... چیرۆکەکە دروست دەکرێت...";
         showScreen('screen-story');
         
         const prompt = "Write a Kurdish crime mystery in Sorani. Set in a Kurdish city. 3 suspects. Do not reveal the killer.";
@@ -153,9 +153,9 @@
     async function showVoting() {
         const result = await talkToGemini("Who was the killer in this story: " + gameStory + " ? Explain in Sorani.");
         showScreen('screen-result');
-        document.getElementById('result-title').innerText = "ڕاستییەکە";
+        document.getElementById('result-title').innerText = "ئەنجامی کۆتایی";
         document.getElementById('result-desc').innerText = result;
-        document.getElementById('result-icon').innerText = "🔎";
+        document.getElementById('result-icon').innerText = "🕵️";
         credits++;
         localStorage.setItem('det_credits', credits);
         document.getElementById('credit-count').innerText = credits;
