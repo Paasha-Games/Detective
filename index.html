@@ -70,7 +70,7 @@
     </div>
 
     <script>
-    // THE SPLIT KEY - Double check these are exactly correct!
+    // THE SPLIT KEY TRICK
     const p1 = "AIzaSyB"; 
     const p2 = "DPKQYcF-r3riU3y0pwHcpResQrRHf7aQ"; 
     const key = (p1 + p2).trim();
@@ -87,8 +87,8 @@
     }
 
     async function talkToGemini(promptText) {
-        // We use v1beta here because it's often more compatible with free keys
-        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + key;
+        // Updated to v1 and the Gemini 3.1 Flash-Lite model
+        const url = "https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:generateContent?key=" + key;
         
         const payload = {
             contents: [{
@@ -105,9 +105,9 @@
 
             if (!response.ok) {
                 const err = await response.json();
-                // This will pop up a box telling us EXACTLY what Google says is wrong
-                alert("Google Error: " + err.error.message);
-                return "کێشەیەک لە سێرڤەر هەیە.";
+                console.error("New Model Error:", err);
+                alert("Status: " + err.error.message);
+                return "کێشەی تەکنیکی لە مۆدێلی نوێ هەیە.";
             }
 
             const data = await response.json();
@@ -120,10 +120,10 @@
 
     async function startGame() {
         playerName = document.getElementById('player-name').value || "لێکۆڵەر";
-        document.getElementById('story-text').innerText = "چاوەڕێبە... خەریکە چیرۆکەکە دروست دەبێت...";
+        document.getElementById('story-text').innerText = "بە بەکارهێنانی Gemini 3.1... چیرۆکەکە ئامادە دەکرێت...";
         showScreen('screen-story');
         
-        const prompt = "Write a very short crime mystery in Sorani Kurdish. Set it in Kurdistan. Mention 3 suspects. Don't reveal the answer.";
+        const prompt = "Write a Kurdish crime mystery in Sorani. Set in a Kurdish city. 3 suspects. Do not reveal the killer.";
         gameStory = await talkToGemini(prompt);
         document.getElementById('story-text').innerText = gameStory;
     }
@@ -136,7 +136,7 @@
         const userQ = input.value;
         input.value = "";
 
-        const prompt = `Context: ${gameStory}. Detective asks: ${userQ}. Respond as 3 suspicious Kurdish characters in Sorani with emojis.`;
+        const prompt = `Context: ${gameStory}. Detective asks: ${userQ}. Respond as 3 suspects in Sorani with emojis.`;
         const aiResponse = await talkToGemini(prompt);
         appendMsg("گومانلێکراوان", aiResponse, 'ai-msg');
     }
@@ -151,11 +151,11 @@
     }
 
     async function showVoting() {
-        const result = await talkToGemini("Explain who was the criminal in the story: " + gameStory + " in Sorani Kurdish.");
+        const result = await talkToGemini("Who was the killer in this story: " + gameStory + " ? Explain in Sorani.");
         showScreen('screen-result');
-        document.getElementById('result-title').innerText = "ئەنجامی کۆتایی";
+        document.getElementById('result-title').innerText = "ڕاستییەکە";
         document.getElementById('result-desc').innerText = result;
-        document.getElementById('result-icon').innerText = "🕵️";
+        document.getElementById('result-icon').innerText = "🔎";
         credits++;
         localStorage.setItem('det_credits', credits);
         document.getElementById('credit-count').innerText = credits;
